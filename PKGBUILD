@@ -24,11 +24,11 @@ if [ -z ${use_numa+x} ]; then
 fi
 
 ## For performance you can disable FUNCTION_TRACER/GRAPH_TRACER. Limits debugging and analyzing of the kernel.
-## Stock Archlinux and Xanmod have this enabled. 
+## Stock Archlinux and Xanmod have this enabled.
 ## Set variable "use_tracers" to: n to disable (possibly increase performance)
 ##                                y to enable  (stock default)
 if [ -z ${use_tracers+x} ]; then
-  use_tracers=y
+  use_tracers=n
 fi
 
 # Unique compiler supported upstream is GCC
@@ -36,6 +36,11 @@ fi
 ## Use the environment variable "_compiler=clang"
 if [ "${_compiler}" = "clang" ]; then
   _compiler_flags="CC=clang HOSTCC=clang LLVM=1 LLVM_IAS=1"
+fi
+
+# Build the zfs module in to the kernel
+if [ -z ${_build_zfs+x} ]; then
+  _build_zfs=n
 fi
 
 # Choose between the 4 main configs for stable branch. Default x86-64-v1 which use CONFIG_GENERIC_CPU2:
@@ -71,15 +76,14 @@ fi
 ### IMPORTANT: Do no edit below this line unless you know what you're doing
 
 pkgbase=linux-xanmod
-_major=6.1
-pkgver=${_major}.8
+_major=6.2
+pkgver=${_major}.10
 _branch=6.x
 xanmod=1
 pkgrel=${xanmod}
 pkgdesc='Linux Xanmod - Current Stable (CURRENT)'
 url="http://www.xanmod.org/"
 arch=(x86_64)
-
 license=(GPL2)
 makedepends=(
   bc cpio kmod libelf perl tar xz
@@ -90,27 +94,60 @@ fi
 options=('!strip')
 _srcname="linux-${pkgver}-xanmod${xanmod}"
 
+# ZFS makedepends
+if [ "$_build_zfs" = "y" ]; then
+  makedepends+=(git)
+fi
+
 source=("https://cdn.kernel.org/pub/linux/kernel/v${_branch}/linux-${_major}.tar."{xz,sign}
-        "https://github.com/xanmod/linux/releases/download/${pkgver}-xanmod${xanmod}/patch-${pkgver}-xanmod${xanmod}.xz"
-        choose-gcc-optimization.sh)
-        #"patch-${pkgver}-xanmod${xanmod}.xz::https://sourceforge.net/projects/xanmod/files/releases/stable/${pkgver}-xanmod${xanmod}/patch-${pkgver}-xanmod${xanmod}.xz/download"
+  "https://github.com/xanmod/linux/releases/download/${pkgver}-xanmod${xanmod}/patch-${pkgver}-xanmod${xanmod}.xz"
+  choose-gcc-optimization.sh)
+#"patch-${pkgver}-xanmod${xanmod}.xz::https://sourceforge.net/projects/xanmod/files/releases/stable/${pkgver}-xanmod${xanmod}/patch-${pkgver}-xanmod${xanmod}.xz/download"
 validpgpkeys=(
-    'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linux Torvalds
-    '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
+  'ABAF11C65A2970B130ABE3C479BE3E4300411886' # Linux Torvalds
+  '647F28654894E3BD457199BE38DBBDC86092693E' # Greg Kroah-Hartman
 )
 
 # Archlinux patches
 _commit="ec9e9a4219fe221dec93fa16fddbe44a34933d8d"
 _patches=()
 for _patch in ${_patches[@]}; do
-    #source+=("${_patch}::https://git.archlinux.org/svntogit/packages.git/plain/trunk/${_patch}?h=packages/linux&id=${_commit}")
-    source+=("${_patch}::https://raw.githubusercontent.com/archlinux/svntogit-packages/${_commit}/trunk/${_patch}")
+  #source+=("${_patch}::https://git.archlinux.org/svntogit/packages.git/plain/trunk/${_patch}?h=packages/linux&id=${_commit}")
+  source+=("${_patch}::https://raw.githubusercontent.com/archlinux/svntogit-packages/${_commit}/trunk/${_patch}")
 done
 
 sha256sums=('2ca1f17051a430f6fed1196e4952717507171acfd97d96577212502703b25deb'
-            'SKIP'
-            '56dd10ec821868c31f732baa0d1c33de0417b05f687546b27c7c8fea3bf8262f'
-            '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
+  'SKIP'
+  '48678483e6ae79e11ab5f3f5792e08d3016bf833047a3182315ce4132923b6cc'
+  '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
+
+## ZFS Support
+if [ "$_build_zfs" = "y" ]; then
+  source+=("git+https://github.com/cachyos/zfs.git#commit=04b02785b67f9b976c43643dd52ce6cdbc22e11e")
+  sha256sums+=('SKIP')
+fi
+
+## ZFS makedepends, source and checksums
+if [ "$_build_zfs" = "y" ]; then
+  # zfsver="2.1.9"
+  # source_url="https://github.com/openzfs/zfs/releases/download/zfs-${zfsver}/zfs-${zfsver}.tar.gz"
+  # source+=("$source_url"
+  #          "${source_url}.asc"
+  # )
+  # sha256sums+=('6b172cdf2eb54e17fcd68f900fab33c1430c5c59848fa46fab83614922fe50f6'
+  #              'SKIP'
+  # )
+  # validpgpkeys+=(
+  #   '4F3BA9AB6D1F8D683DC2DFB56AD860EED4598027' # Tony Hutter
+  #   '29D5610EAE2941E355A2FE8AB97467AAC77B9667' # Ned Bass
+  # )
+
+  # ZFS branch zfs-2.1.10-staging
+  makedepends+=(git)
+  source_url="https://github.com/openzfs/zfs.git#commit=184508c77880dc85f88277927230c1908d42573d"
+  source+=("git+$source_url")
+  sha256sums+=('SKIP')
+fi
 
 export KBUILD_BUILD_HOST=${KBUILD_BUILD_HOST:-archlinux}
 export KBUILD_BUILD_USER=${KBUILD_BUILD_USER:-makepkg}
@@ -150,14 +187,14 @@ prepare() {
 
   # Enable IKCONFIG following Arch's philosophy
   scripts/config --enable CONFIG_IKCONFIG \
-                 --enable CONFIG_IKCONFIG_PROC
+    --enable CONFIG_IKCONFIG_PROC
 
   # User set. See at the top of this file
-  if [ "$use_tracers" = "n" ]; then
-    msg2 "Disabling FUNCTION_TRACER/GRAPH_TRACER only if we are not compiling with clang..."
+  if [ "$use_tracers" = "y" ]; then
+    msg2 "Enabling CONFIG_FTRACE only if we are not compiling with clang..."
     if [ "${_compiler}" = "gcc" ]; then
       scripts/config --disable CONFIG_FUNCTION_TRACER \
-                     --disable CONFIG_STACK_TRACER
+        --disable CONFIG_STACK_TRACER
     fi
   fi
 
@@ -225,17 +262,30 @@ prepare() {
 build() {
   cd linux-${_major}
   make ${_compiler_flags} all
+
+  if [ "$_build_zfs" = "y" ]; then
+    cd ${srcdir}/"zfs"
+
+    ./autogen.sh
+    sed -i "s|\$(uname -r)|$(<${srcdir}/linux-${_major}/version)|g" configure
+    ./configure KERNEL_LLVM=1 --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \
+      --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \
+      --libexecdir=/usr/lib/zfs --with-config=kernel \
+      --with-linux=${srcdir}/linux-${_major}
+    make ${_compiler_flags}
+  fi
+
 }
 
 _package() {
   pkgdesc="The Linux kernel and modules with Xanmod patches"
   depends=(coreutils kmod initramfs)
   optdepends=('crda: to set the correct wireless channels of your country'
-              'linux-firmware: firmware images needed for some devices')
+    'linux-firmware: firmware images needed for some devices')
   provides=(VIRTUALBOX-GUEST-MODULES
-            WIREGUARD-MODULE
-            KSMBD-MODULE
-            NTFS3-MODULE)
+    WIREGUARD-MODULE
+    KSMBD-MODULE
+    NTFS3-MODULE)
 
   cd linux-${_major}
   local kernver="$(<version)"
@@ -274,7 +324,7 @@ _package-headers() {
   install -Dt "$builddir/tools/objtool" tools/objtool/objtool
 
   # required when DEBUG_INFO_BTF_MODULES is enabled
-  if [ -f "$builddir/tools/bpf/resolve_btfids" ]; then install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids ; fi
+  if [ -f "tools/bpf/resolve_btfids/resolve_btfids" ]; then install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids ; fi
 
   msg2 "Installing headers..."
   cp -t "$builddir" -a include
@@ -320,25 +370,42 @@ _package-headers() {
   while read -rd '' file; do
     case "$(file -bi "$file")" in
       application/x-sharedlib\;*)      # Libraries (.so)
-        strip -v $STRIP_SHARED "$file" ;;
+      strip -v $STRIP_SHARED "$file" ;;
       application/x-archive\;*)        # Libraries (.a)
-        strip -v $STRIP_STATIC "$file" ;;
+      strip -v $STRIP_STATIC "$file" ;;
       application/x-executable\;*)     # Binaries
-        strip -v $STRIP_BINARIES "$file" ;;
-      application/x-pie-executable\;*) # Relocatable binaries
-        strip -v $STRIP_SHARED "$file" ;;
+      strip -v $STRIP_BINARIES "$file" ;;
+    application/x-pie-executable\;*) # Relocatable binaries
+      strip -v $STRIP_SHARED "$file" ;;
     esac
   done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
 
   msg2 "Stripping vmlinux..."
   strip -v $STRIP_STATIC "$builddir/vmlinux"
-  
+
   msg2 "Adding symlink..."
   mkdir -p "$pkgdir/usr/src"
   ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
 }
 
+_package-zfs() {
+  pkgdesc="zfs module for the $pkgdesc kernel"
+  depends=('pahole' "'linux-xanmod='$($pkgver-$pkgrel)")
+
+  local kernver="$(<${srcdir}/linux-${_major}/version)"
+  local modulesdir="$pkgdir/usr/lib/modules/$kernver"
+
+  cd ${srcdir}/"zfs"
+  install -dm755 "$modulesdir"
+  install -m644 module/*/*.ko "$modulesdir"
+  find "$pkgdir" -name '*.ko' -exec zstd --rm -10 {} +
+  #  sed -i -e "s/EXTRAMODULES='.*'/EXTRAMODULES='${pkgver}-${pkgbase}'/" "$startdir/zfs.install"
+}
+
 pkgname=("${pkgbase}" "${pkgbase}-headers")
+if [ "$_build_zfs" = "y" ]; then
+  pkgname+=("$pkgbase-zfs")
+fi
 for _p in "${pkgname[@]}"; do
   eval "package_$_p() {
     $(declare -f "_package${_p#$pkgbase}")
