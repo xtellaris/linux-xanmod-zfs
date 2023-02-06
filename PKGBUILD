@@ -390,7 +390,7 @@ _package-headers() {
 
 _package-zfs() {
   pkgdesc="zfs module for the $pkgdesc kernel"
-  depends=('pahole' "'linux-xanmod='$($pkgver-$pkgrel)")
+  depends=('pahole' "linux-xanmod=$pkgver-$pkgrel")
 
   local kernver="$(<${srcdir}/linux-${_major}/version)"
   local modulesdir="$pkgdir/usr/lib/modules/$kernver"
