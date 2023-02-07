@@ -76,8 +76,8 @@ fi
 ### IMPORTANT: Do no edit below this line unless you know what you're doing
 
 pkgbase=linux-xanmod
-_major=6.2
-pkgver=${_major}.10
+_major=6.1
+pkgver=${_major}.11
 _branch=6.x
 xanmod=1
 pkgrel=${xanmod}
@@ -117,9 +117,9 @@ for _patch in ${_patches[@]}; do
 done
 
 sha256sums=('2ca1f17051a430f6fed1196e4952717507171acfd97d96577212502703b25deb'
-  'SKIP'
-  '48678483e6ae79e11ab5f3f5792e08d3016bf833047a3182315ce4132923b6cc'
-  '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
+            'SKIP'
+            '57e1367a35b5c634edfd54a8ea6156d07a4b676a7ad9303d99e4ca6b5c656661'
+            '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
 
 ## ZFS Support
 if [ "$_build_zfs" = "y" ]; then
