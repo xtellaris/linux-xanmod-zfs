@@ -96,6 +96,7 @@ _srcname="linux-${pkgver}-xanmod${xanmod}"
 
 # ZFS makedepends
 if [ "$_build_zfs" = "y" ]; then
+  zfsver="2.1.9"
   makedepends+=(git)
 fi
 
@@ -121,10 +122,19 @@ sha256sums=('2ca1f17051a430f6fed1196e4952717507171acfd97d96577212502703b25deb'
             '57e1367a35b5c634edfd54a8ea6156d07a4b676a7ad9303d99e4ca6b5c656661'
             '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
 
-## ZFS Support
+## ZFS source and checksums
 if [ "$_build_zfs" = "y" ]; then
-  source+=("git+https://github.com/cachyos/zfs.git#commit=04b02785b67f9b976c43643dd52ce6cdbc22e11e")
-  sha256sums+=('SKIP')
+  source_url="https://github.com/openzfs/zfs/releases/download/zfs-${zfsver}/zfs-${zfsver}.tar.gz"
+  source+=("$source_url"
+           "${source_url}.asc"
+  )
+  sha256sums+=('6b172cdf2eb54e17fcd68f900fab33c1430c5c59848fa46fab83614922fe50f6'
+               'SKIP'
+  )
+  validpgpkeys+=(
+    '4F3BA9AB6D1F8D683DC2DFB56AD860EED4598027' # Tony Hutter
+    '29D5610EAE2941E355A2FE8AB97467AAC77B9667' # Ned Bass
+  )
 fi
 
 ## ZFS makedepends, source and checksums
@@ -264,7 +274,7 @@ build() {
   make ${_compiler_flags} all
 
   if [ "$_build_zfs" = "y" ]; then
-    cd ${srcdir}/"zfs"
+    cd ${srcdir}/"zfs-${zfsver}"
 
     ./autogen.sh
     sed -i "s|\$(uname -r)|$(<${srcdir}/linux-${_major}/version)|g" configure
@@ -395,7 +405,7 @@ _package-zfs() {
   local kernver="$(<${srcdir}/linux-${_major}/version)"
   local modulesdir="$pkgdir/usr/lib/modules/$kernver"
 
-  cd ${srcdir}/"zfs"
+  cd ${srcdir}/"zfs-${zfsver}"
   install -dm755 "$modulesdir"
   install -m644 module/*/*.ko "$modulesdir"
   find "$pkgdir" -name '*.ko' -exec zstd --rm -10 {} +
