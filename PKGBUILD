@@ -78,7 +78,7 @@ fi
 
 pkgbase=linux-xanmod
 _major=6.2
-pkgver=${_major}.7
+pkgver=${_major}.10
 _branch=6.x
 xanmod=1
 pkgrel=${xanmod}
@@ -120,7 +120,7 @@ done
 
 sha256sums=('74862fa8ab40edae85bb3385c0b71fe103288bce518526d63197800b3cbdecb1'
             'SKIP'
-            '67af1dd0a54b13fa62e1c0293537f994a9e8728587a923cee80ca8bc0dde9477'
+            '30d69962510bb3eb630c2f0c590a0e3187739b82e4d7835c59ab061355c20019'
             '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
 
 ## ZFS source and checksums
