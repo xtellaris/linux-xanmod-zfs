@@ -95,12 +95,6 @@ fi
 options=('!strip')
 _srcname="linux-${pkgver}-xanmod${xanmod}"
 
-# ZFS makedepends
-if [ "$_build_zfs" = "y" ]; then
-  zfsver="2.1.9"
-  makedepends+=(git)
-fi
-
 source=("https://cdn.kernel.org/pub/linux/kernel/v${_branch}/linux-${_major}.tar."{xz,sign}
   "https://github.com/xanmod/linux/releases/download/${pkgver}-xanmod${xanmod}/patch-${pkgver}-xanmod${xanmod}.xz"
   choose-gcc-optimization.sh)
@@ -123,8 +117,10 @@ sha256sums=('74862fa8ab40edae85bb3385c0b71fe103288bce518526d63197800b3cbdecb1'
             '30d69962510bb3eb630c2f0c590a0e3187739b82e4d7835c59ab061355c20019'
             '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
 
-## ZFS source and checksums
+## ZFS makedepends, sources and checksums
 if [ "$_build_zfs" = "y" ]; then
+  zfsver="2.1.9"
+  makedepends+=(git)
   source_url="https://github.com/openzfs/zfs/releases/download/zfs-${zfsver}/zfs-${zfsver}.tar.gz"
   source+=("$source_url"
            "${source_url}.asc"
@@ -278,9 +274,11 @@ build() {
   if [ "$_build_zfs" = "y" ]; then
     cd ${srcdir}/"zfs-${zfsver}"
 
+    local CONFIGURE_FLAGS=()
+    [ "$_compiler" == "clang" ] && CONFIGURE_FLAGS+=("KERNEL_LLVM=1")
     ./autogen.sh
     sed -i "s|\$(uname -r)|$(<${srcdir}/linux-${_major}/version)|g" configure
-    ./configure KERNEL_LLVM=1 --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \
+    ./configure ${CONFIGURE_FLAGS[*]} --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \
       --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \
       --libexecdir=/usr/lib/zfs --with-config=kernel \
       --with-linux=${srcdir}/linux-${_major}
