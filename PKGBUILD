@@ -95,6 +95,12 @@ fi
 options=('!strip')
 _srcname="linux-${pkgver}-xanmod${xanmod}"
 
+# ZFS makedepends
+if [ "$_build_zfs" = "y" ]; then
+  zfsver="2.1.9"
+  makedepends+=(git)
+fi
+
 source=("https://cdn.kernel.org/pub/linux/kernel/v${_branch}/linux-${_major}.tar."{xz,sign}
   "https://github.com/xanmod/linux/releases/download/${pkgver}-xanmod${xanmod}/patch-${pkgver}-xanmod${xanmod}.xz"
   choose-gcc-optimization.sh)
@@ -117,26 +123,19 @@ sha256sums=('74862fa8ab40edae85bb3385c0b71fe103288bce518526d63197800b3cbdecb1'
             '30d69962510bb3eb630c2f0c590a0e3187739b82e4d7835c59ab061355c20019'
             '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
 
-## ZFS makedepends, source and checksums
+## ZFS source and checksums
 if [ "$_build_zfs" = "y" ]; then
-  # zfsver="2.1.9"
-  # source_url="https://github.com/openzfs/zfs/releases/download/zfs-${zfsver}/zfs-${zfsver}.tar.gz"
-  # source+=("$source_url"
-  #          "${source_url}.asc"
-  # )
-  # sha256sums+=('6b172cdf2eb54e17fcd68f900fab33c1430c5c59848fa46fab83614922fe50f6'
-  #              'SKIP'
-  # )
-  # validpgpkeys+=(
-  #   '4F3BA9AB6D1F8D683DC2DFB56AD860EED4598027' # Tony Hutter
-  #   '29D5610EAE2941E355A2FE8AB97467AAC77B9667' # Ned Bass
-  # )
-
-  # ZFS branch zfs-2.1.10-staging
-  makedepends+=(git)
-  source_url="https://github.com/openzfs/zfs.git#commit=184508c77880dc85f88277927230c1908d42573d"
-  source+=("git+$source_url")
-  sha256sums+=('SKIP')
+  source_url="https://github.com/openzfs/zfs/releases/download/zfs-${zfsver}/zfs-${zfsver}.tar.gz"
+  source+=("$source_url"
+           "${source_url}.asc"
+  )
+  sha256sums+=('6b172cdf2eb54e17fcd68f900fab33c1430c5c59848fa46fab83614922fe50f6'
+               'SKIP'
+  )
+  validpgpkeys+=(
+    '4F3BA9AB6D1F8D683DC2DFB56AD860EED4598027' # Tony Hutter
+    '29D5610EAE2941E355A2FE8AB97467AAC77B9667' # Ned Bass
+  )
 fi
 
 ## ZFS makedepends, source and checksums
@@ -277,7 +276,7 @@ build() {
   make ${_compiler_flags} all
 
   if [ "$_build_zfs" = "y" ]; then
-    cd ${srcdir}/"zfs"
+    cd ${srcdir}/"zfs-${zfsver}"
 
     ./autogen.sh
     sed -i "s|\$(uname -r)|$(<${srcdir}/linux-${_major}/version)|g" configure
@@ -409,7 +408,7 @@ _package-zfs() {
   local kernver="$(<${srcdir}/linux-${_major}/version)"
   local modulesdir="$pkgdir/usr/lib/modules/$kernver"
 
-  cd ${srcdir}/"zfs"
+  cd ${srcdir}/"zfs-${zfsver}"
   install -dm755 "$modulesdir"
   install -m644 module/*/*.ko "$modulesdir"
   find "$pkgdir" -name '*.ko' -exec zstd --rm -10 {} +
