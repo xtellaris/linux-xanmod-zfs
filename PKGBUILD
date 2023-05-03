@@ -78,11 +78,11 @@ fi
 
 pkgbase=linux-xanmod
 _major=6.3
-pkgver=${_major}.0
+pkgver=${_major}.9
 _branch=6.x
 xanmod=1
-_revision=_rev2
-pkgrel=2  ##${xanmod}
+_revision=
+pkgrel=${xanmod}
 pkgdesc='Linux Xanmod - Current Stable (CURRENT)'
 url="http://www.xanmod.org/"
 arch=(x86_64)
@@ -115,7 +115,7 @@ done
 
 sha256sums=('ba3491f5ed6bd270a370c440434e3d69085fcdd528922fa01e73d7657db73b1e'
             'SKIP'
-            'e29f9fcd2447d4612d381303e9d527b7ea1c7fd497a4d3dc0dfc73f0e85f2cd9'
+            'f6010d895c549ba8fc7e4728208c04de988486de0c30a1cdf50e04855d37675d'
             '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
 
 ## ZFS makedepends, sources and checksums
