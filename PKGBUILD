@@ -116,18 +116,17 @@ done
 sha256sums=('ba3491f5ed6bd270a370c440434e3d69085fcdd528922fa01e73d7657db73b1e'
             'SKIP'
             'f6010d895c549ba8fc7e4728208c04de988486de0c30a1cdf50e04855d37675d'
-            '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30')
+            '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30'
+            '64daa26aed3e12c931f6f4413d7527c4ebdb8da35416b356152b5f9fdd4c6e6d'
+            'SKIP')
 
 ## ZFS makedepends, sources and checksums
 if [ "$_build_zfs" = "y" ]; then
-  zfsver="2.1.9"
+  zfsver="2.1.12"
   makedepends+=(git)
   source_url="https://github.com/openzfs/zfs/releases/download/zfs-${zfsver}/zfs-${zfsver}.tar.gz"
   source+=("$source_url"
            "${source_url}.asc"
-  )
-  sha256sums+=('6b172cdf2eb54e17fcd68f900fab33c1430c5c59848fa46fab83614922fe50f6'
-               'SKIP'
   )
   validpgpkeys+=(
     '4F3BA9AB6D1F8D683DC2DFB56AD860EED4598027' # Tony Hutter
@@ -278,9 +277,16 @@ build() {
     [ "$_compiler" == "clang" ] && CONFIGURE_FLAGS+=("KERNEL_LLVM=1")
     ./autogen.sh
     sed -i "s|\$(uname -r)|$(<${srcdir}/linux-${_major}/version)|g" configure
-    ./configure ${CONFIGURE_FLAGS[*]} --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \
-      --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \
-      --libexecdir=/usr/lib/zfs --with-config=kernel \
+    ./configure ${CONFIGURE_FLAGS[*]} \
+      --prefix=/usr \
+      --sysconfdir=/etc \
+      --sbindir=/usr/bin \
+      --libdir=/usr/lib \
+      --datadir=/usr/share \
+      --includedir=/usr/include \
+      --with-udevdir=/lib/udev \
+      --libexecdir=/usr/lib/zfs \
+      --with-config=kernel \
       --with-linux=${srcdir}/linux-${_major}
     make ${_compiler_flags}
   fi
