@@ -78,7 +78,7 @@ fi
 
 pkgbase=linux-xanmod
 _major=6.3
-pkgver=${_major}.9
+pkgver=${_major}.12
 _branch=6.x
 xanmod=1
 _revision=
@@ -115,7 +115,7 @@ done
 
 sha256sums=('ba3491f5ed6bd270a370c440434e3d69085fcdd528922fa01e73d7657db73b1e'
             'SKIP'
-            'f6010d895c549ba8fc7e4728208c04de988486de0c30a1cdf50e04855d37675d'
+            '8599645087115be456ffa4d9726124c77c0c7c976403c2486c68fa1ebb9e80bc'
             '5c84bfe7c1971354cff3f6b3f52bf33e7bbeec22f85d5e7bfde383b54c679d30'
             '64daa26aed3e12c931f6f4413d7527c4ebdb8da35416b356152b5f9fdd4c6e6d'
             'SKIP')
